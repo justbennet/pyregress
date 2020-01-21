@@ -1,5 +1,7 @@
 # Writing a naive regression in Python
 
+## Introduction
+
 As you know, the regression model can be written and implemented
 using matrices.  The basic form of the model is
 
