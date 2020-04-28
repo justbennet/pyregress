@@ -51,7 +51,9 @@ We will break down the quantities above and calculate the simplest components fi
 1. Read the data from `data.csv` and create the ***X*** and ***Y*** vectors.
 1. Calculate ***X***'
 1. Calculate ***X***'***X***
-1. Calculate (***X***-***X***)<sup>-1</sup>
+
+Calculate (***X***-***X***)<sup>-1</sup>
+
 1. Calculate ***X***'***Y***
 1. Calculate ***b*** = (***X***-***X***)<sup>-1</sup>***X***'***Y***
 1. Calculate ***Y***_est = ***Xb*** - (***X***-***X***)<sup>-1</sup>***X***'***Y***
