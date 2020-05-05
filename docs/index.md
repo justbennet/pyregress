@@ -4,7 +4,7 @@
 
 Linear regression is probably the most commonly used statistical model on earth that attempts to show a relationship between two or more variables (correlation is just a special case of linear regression).  The equation for linear regression can be written and implemented using vectors and matrices.  NumPy is written to help make dealing with matrices and vectors easier, so linear regression makes a good example to show how. 
 
-Variables shown in bold, like **Y** are vectors or matrices; that is, they contain more than one value.  Variables that represent only a single number, like *y*, are sometimes called _scalars_.  When it matters that a vector have only one column but multiple columns, it will be called a _column vector_, and similarly when it has only one row, it will be called a _row vector_.  That matters in multiplication because the length of a column, or the width of a row, has to match up with thing they are being multiplied with.
+Variables shown in bold, like **Y** are vectors or matrices; that is, they contain more than one value.  Variables that represent only a single number, like *y*, are sometimes called _scalars_.  When it matters that a vector have only one column but multiple rows, it will be called a _column vector_, and similarly when it has only one row with multiple columns, it will be called a _row vector_.  That matters in multiplication because the length of a column, or the width of a row, has to match up with thing they are being multiplied with.
 
 The basic form of the regression model, when written in matrix notation is,
 
