@@ -1,6 +1,6 @@
 # Writing a naive linear regression in Python
 
-## Introduction
+## Introduction to regression
 
 Linear regression is probably the most commonly used statistical model on earth that attempts to show a relationship between two or more variables (correlation is just a special case of linear regression).  The equation for linear regression can be written and implemented using vectors and matrices.  NumPy is written to help make dealing with matrices and vectors easier, so linear regression makes a good example to show how. 
 
@@ -64,4 +64,25 @@ Calculate (**X**-**X**)<sup>-1</sup>
 
 Before we get to calculating those quantities, though, we need to introduce you to NumPy and get some data to work with.
 
-Please click on the menu to the right to go to the next section, Reading Data.
+## Introduction to NumPy
+
+NumPy is a Python _library_ for doing linear algebra, that is, computations with matrices and vectors.  It does need to be installed.  There are many ways to install Python and NumPy, and we will assume you have done so.  In what follows, we will show examples either as Python commands that you type at a Python prompt, as in
+
+```
+>>> import numpy
+```
+or we will put some commands into a file, such as `welcome.py`, and then show the results of running those commands from a command line (we assume Linux, but it may be Mac or Windows), as in the following example.
+<hr>
+Create a file called `welcome.py` with the following contents.
+
+```
+print("Welcome to regression with NumPy")
+```
+
+Then run it using Python, in the following way.
+
+```
+$ python welcome.py
+Welcome to regression with NumPy
+```
+<hr noshade>
