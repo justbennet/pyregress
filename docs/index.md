@@ -56,7 +56,7 @@ Calculate (**X**-**X**)<sup>-1</sup>
 
 1. Calculate **X**'**Y**
 1. Calculate **b** = (**X**-**X**)<sup>-1</sup>**X**'**Y**
-1. Calculate **Y**_est = **Xb** - (**X**-**X**)<sup>-1</sup>**X**'**Y**
+1. Calculate **Y&#770;** = **Xb** - (**X**-**X**)<sup>-1</sup>**X**'**Y**
 
 Before we get to calculating those quantities, though, we need to introduce you to NumPy and get some data to work with.
 
