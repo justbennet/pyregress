@@ -1,1 +1,4 @@
 theme: jekyll-theme-architect
+title: [pyregress]
+description: [A NumPy tutorial using regression]
+show_downloads: ["false"]
