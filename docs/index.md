@@ -12,6 +12,10 @@ The basic form of the regression model, when written in matrix notation is,
 
 where **Y** is the vector of dependent variable values, **X** is the vector (or matrix) of independent variable values, **&beta;** is the vector (or matrix) of regression coefficients, and **&epsilon;** is the vector of independent errors (residuals).
 
+That corresponds, roughly,  for our example to
+
+_Y_ = _&beta;_<sub>0</sub> + _&beta;_<sub>1</sub> + _&epsilon;_.
+
 If our sample size is _n_, then the **Y** vector is a single column of numbers that is _n_ rows tall.  For our case, we will only have a single value for **X**, so it, too, is a single column of numbers that is _n_ rows tall.  If there were more variables, the number of columns would increase, but the number of rows in **Y** and **X** must be the same.
 
 The **&beta;** is two columns, which is the number of columns in both **X** and **Y**, but only one row.  Finally, the **&epsilon;** is one column with _n_ rows.
@@ -62,9 +66,12 @@ Calculate (**X**-**X**)<sup>-1</sup>
 1. Calculate **b** = (**X**-**X**)<sup>-1</sup>**X**'**Y**
 1. Calculate **Y&#770;** = **Xb** - (**X**-**X**)<sup>-1</sup>**X**'**Y**
 
+
 Before we get to calculating those quantities, though, we need to introduce you to NumPy and get some data to work with.
 
 ## Introduction to NumPy
+
+### How we will show code and output
 
 NumPy is a Python _library_ for doing linear algebra, that is, computations with matrices and vectors.  It does need to be installed.  There are many ways to install Python and NumPy, and we will assume you have done so.  In what follows, we will show examples either as Python commands that you type at a Python prompt, as in
 
@@ -81,7 +88,6 @@ Hello, NumPy
 ```
 Where `In[1]` means the first line of input, and output will be shown 
 
-
 We will put some commands into a file, such as `welcome.py`, and then show the results of running those commands from a command line (we assume Linux, but it may be Mac or Windows), as in the following example.
 <hr>
 Create a file called `welcome.py` with the following contents.
@@ -97,6 +103,8 @@ $ python welcome.py
 Welcome to regression with NumPy
 ```
 <hr noshade>
+
+### Reading data from a file
 
 In the example above, we showed you how to `import numpy`, which is to say, make it available to the current Python program or script.
 
@@ -125,7 +133,11 @@ array([[ 4. , 33. ],
        [ 6.5, 61. ],
        [ 7. , 62. ]])
 ```
-We now have some data -- seven rows of two numbers -- in a variable called `data`.  When we display the values by typing the variable name and pressing Return, NumPy tells us that it is an _array_, which is the basic data type for NumPy.  You'll see that there are a lot of brackets and parentheses in that display.  Before we go much further, we should look at what those mean and what is stored in an array.
+We now have some data -- seven rows of two numbers -- in a variable called `data`.
+
+### Exploring NumPy arrays
+
+When we display the values by typing the variable name and pressing Return, NumPy tells us that it is an _array_, which is the basic data type for NumPy.  You'll see that there are a lot of brackets and parentheses in that display.  Before we go much further, we should look at what those mean and what is stored in an array.
 
 Let's start by looking at the middle row: `[ 5.5, 51. ],`.  It is enclosed in brackets, which indicates that it is an array in its own right, and in this case it has one _dimension_, which looks here like a row, and it contains two numbers, 5.5 and 51.  The numbers inside the array are separated from each other when the array is printed by commas, just as you can see that the arrays that make up data are separated from each other by commas.
 
@@ -210,6 +222,8 @@ array([[1, 2, 3],
 ```
 Finally, we have arrived at the shape of our current `data` variable, and we now understand that it has two dimensions, which is seven rows and two columns in an array.
 
+#### Creating the Y vector
+
 Looking back at our list of things to calculate, we need to create variables for **X** and for **Y**, and those need to be column vectors.  We will create those using a _slice_, which is a way to take a subset of the values from a variable that contains more than one value.  We will use the colon the same way we've just been doing to create the **Y** vector.
 
 ```
@@ -234,3 +248,186 @@ array([[33.],
        [62.]])
 ```
 
+#### Creating the X matrix
+
+The **X** matrix is a little different from the **Y** vector because there is more to it than just the data that was in the file we read.  The **X** matrix also needs a column of 1s, which are used to calculate _&beta;_<sub>0</sub> term, that is, the intercept.  But, let's start with what we know, which is
+
+```
+>>> X = data[:, 0]
+>>> X
+array([4. , 4.5, 5. , 5.5, 6. , 6.5, 7. ])
+```
+
+We don't want to add a dimension just yet!  Remember that the final **X** matrix needs to have a column of ones?  Let's create that first.
+
+Since vectors and matrices that consist of all ones or all zeros are fairly common and useful, NumPy has functions that will create them for you: `zeros` and `ones`, and they take as an argument the size that you want the resulting vector or matrix to be.  One way to create our vector of 1s would be to use
+
+```
+>>> numpy.ones(7)
+array([1., 1., 1., 1., 1., 1., 1.])
+```
+
+because we know there are seven values.  But we won't always know what number to put there, so let's instead use something that will contain that number for any **X** we might use, namely `X.shape`.  We can use that with the `ones` function to create our vector.
+
+```
+>>> constant = numpy.ones(X.shape)
+>>> constant
+array([1., 1., 1., 1., 1., 1., 1.])
+```
+
+So now we have an `X` and a vector of 1s,
+
+```
+>>> X
+array([4. , 4.5, 5. , 5.5, 6. , 6.5, 7. ])
+>>> constant
+array([1., 1., 1., 1., 1., 1., 1.])
+```
+and we need to attach them to each other.  Right now, they are both one-dimensional, and they are both seven elements long, and so we can join them up by making a new array.  We want to create the new array such that each of these is one element in a new dimension, so we do that by enclosing them in the square brackets, separated by a comma, and putting all of that inside the function to create an array (remember, we said it is safe to have the same variable on both side of the equal sign).
+
+```
+>>> X = numpy.array([constant, X])
+>>> X
+array([[1. , 1. , 1. , 1. , 1. , 1. , 1. ],
+       [4. , 4.5, 5. , 5.5, 6. , 6.5, 7. ]])
+```
+
+That looks almost right, but it's 'laying on its side' instead of standing on its feet.  That is, it has two rows and seven columns, and what we want is an **X** with seven rows and two columns.  That's exactly what the transpose attribute will do for us, and we'll need that quite a bit later.  
+
+```
+>>> X = X.T
+>>> X
+array([[1. , 4. ],
+       [1. , 4.5],
+       [1. , 5. ],
+       [1. , 5.5],
+       [1. , 6. ],
+       [1. , 6.5],
+       [1. , 7. ]])
+```
+
+We've been learning a lot of new things and typing at the prompt to explore.  That is how you should do new things so you can see what results.  However, most of the time, you will want to use some sequence of commands over and over again, so let's go back through what we have done and put it into a script that we can use repeatedly.
+
+### Writing the first version of the pyregress script
+
+You'll need to use a program to create a plain text file.  That could be `nano` from a terminal window on a Linux or Mac machine, or possibly Notepad on Windows.  If you have another editor you prefer, please use it.  But, do not use something like Word or LibreOffice Writer and if you use TextEdit on the Mac, make sure you save as plain, not rich, text.
+
+Going all the way back to the beginning, we will start by importing the `numpy` library.  Most people choose to import it so it can be referred to simply as `np` instead of `numpy`, and that is done with
+
+```
+import numpy as np
+```
+
+next we want the function that reads the data and assigns it to a variable.  We'll also introduce the use of comments here.  So, the next couple of lines might be this.  Remember, where we used `numpy.name` above, we will now use `np.name`.
+
+```
+# Read the data from the file; comma separated, and skip the column headers
+data = np.loadtxt('data.csv', delimiter=',', skiprows=1)
+```
+
+Next, we created the `Y` column vector with these commands,
+
+```
+# Extract the values for Y from data and reshape to column vector
+Y = data[:, 1]
+Y = Y[:, np.newaxis]
+```
+
+and the `X` matrix with these,
+
+```
+# Extract the values for X from data, add the constant column, and reshape
+X = data[:, 0]
+constant = np.ones(X.shape)
+X = np.array([constant, X])
+X = X.T
+```
+
+A word about programming and comments here.  Some people write programs with 'programming style' in mind.  That is good, and you need to learn to read and to write programs in a good programming style.  However, many programs are written to do work, and they are not always run by people who read and write programs.
+
+In my work, many of the programs I write are used by undergraduate research assistants who come to our lab in their third year and stay for only two years.  We also get new graduate students every year or two, and most are gone at the end of their fifth year.  That means there is almost always a good number of people who have less rather than more experience.  So, when I write programs, I try to write comments, and the program itself, so that it can be readily understood by someone who is new to the lab and new to programming.
+
+We could rewrite what's above as
+
+```
+# Extract the values for X from data
+X = data[:, 0]
+
+# Create the constant's column of ones and connect to X
+X = np.array([np.ones(X.shape), X])
+
+# Transpose to columnar format
+X = X.T
+```
+or even more 'concisely' as
+```
+# Extract the values for X from data, add the constant column, and reshape
+X = data[:, 0]
+X = np.array([np.ones(X.shape), X]).T
+```
+
+As with all good writing, keep your audience in mind.  You want enough code and comments to be clear to the people who will read it and use it.  In my case, I might choose the middle version above.  Coming back to even simple programs that I wrote six months or more ago I have often wished I hadn't tried to be quite so clever and so spare with the comments.
+
+Finally, in our program, we might want to print the `X` and `Y`.  When running from a script, you must use an explicit `print` function.  The `\n` is how you print an extra end-of-line, resulting in this case in a blank line.  Note that you do not need a space after to separate it from the next word.
+
+```
+print("\nThe X matrix\n")
+print(X)
+print("\nThe Y vector\n")
+print(Y)
+```
+
+Putting all that together, and adding one additional, cosmetic `print` statement, we might have a `regress.py` that looks like this
+
+```
+import numpy as np
+
+# Read the data from the data file
+print("Reading the data...")
+data = np.loadtxt('data.csv', delimiter=',', skiprows=1)
+
+# Extract the values for Y from data and reshape to column vector
+Y = data[:, 1]
+Y = Y[:, np.newaxis]
+
+# Extract the values for X from data
+X = data[:, 0]
+
+# Create the constant's column of ones and connect to X
+X = np.array([np.ones(X.shape), X])
+
+# Transpose to columnar format
+X = X.T
+
+print("\nThe X matrix\n")
+print(X)
+print("\nThe Y vector\n")
+print(Y)
+```
+
+And you can run that with
+
+```
+$ python3 regress.py
+Reading the data...
+
+The X matrix
+
+[[1.  4. ]
+ [1.  4.5]
+ [1.  5. ]
+ [1.  5.5]
+ [1.  6. ]
+ [1.  6.5]
+ [1.  7. ]]
+
+The Y vector
+
+[[33.]
+ [42.]
+ [45.]
+ [51.]
+ [53.]
+ [61.]
+ [62.]]
+```
