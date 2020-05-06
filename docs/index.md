@@ -59,12 +59,10 @@ We will break down the quantities above and calculate the simplest components fi
 1. Read the data from `data.csv` and create the ***X*** and ***Y*** vectors.
 1. Calculate **X**'
 1. Calculate **X**'**X**
-
-Calculate (**X**-**X**)<sup>-1</sup>
-
+1. Calculate (**X**'**X**)<sup>-1</sup>
 1. Calculate **X**'**Y**
-1. Calculate **b** = (**X**-**X**)<sup>-1</sup>**X**'**Y**
-1. Calculate **Y&#770;** = **Xb** - (**X**-**X**)<sup>-1</sup>**X**'**Y**
+1. Calculate **b** = (**X**'**X**)<sup>-1</sup>**X**'**Y**
+1. Calculate **Y&#770;** = **Xb** - (**X**'**X**)<sup>-1</sup>**X**'**Y**
 
 
 Before we get to calculating those quantities, though, we need to introduce you to NumPy and get some data to work with.
@@ -431,3 +429,222 @@ The Y vector
  [61.]
  [62.]]
 ```
+
+### Calculating the regression equation
+
+#### Matrix multiplication: elementwise and the dot product
+
+There are two more tools that we need before we can calculate the regression equation.  First, let's make sure we are clear what _multiplication_ means in a matrix context.  To look at this, let's create a couple of small matrices to play with.  In the following example, we have broken one command onto a second line of input.  The Python prompt changes to `...` to indicate that the command is incomplete.  You can break commands inside parentheses anywhere you can use a space character, but _not_ beween quotes of any kind.  Note, also, that I am using the transpose attached to the `np.array` function when creating `g`, which might be contrary to my admonition above.  Mea culpa.
+
+```
+>>> g = np.array([[ 1.,  1.,  1.],
+...        [ 1.,  2.,  3.]]).T
+>>> g
+array([[1., 1.],
+       [1., 2.],
+       [1., 3.]])
+```
+
+If we multiply `g` by itself the same way we would multiply numbers,
+
+```
+>>> g * g
+array([[1., 1.],
+       [1., 4.],
+       [1., 9.]])
+```
+you can see that each element of `g` is multiplied by the corresponding element in the other `g`.  That is referred to as _element-wise multiplication_, and it is not what we want.  What we want, instead, is called a _dot product_.  The dot product can only be calculated if the number of columns in the first element is the same as the number of rows in the second.  
+
+You can calculate a dot product for a square matrix -- same number of rows as columns -- and itself, but for non-square matrices, you cannot.  You can however, calculate the dot product of a matrix and its inverse, and for the inverse of a matrix and itself.
+
+So, for example, we can calculate both of these.  Note that the size of the resulting matrices are different depending which comes first.  The rows of the result are the same as the number of rows in the first matrix, and the number of columns in the result is the same as the number of columns in the second matrix.  So, we get a 3x3 matrix in the first case and a 2x2 in the second.
+
+```
+    g              g.T
+[ 1.,  1.]   [ 1.,  1.,  1.]   [  2.,   3.,   4.]
+[ 1.,  2.] * [ 1.,  2.,  3.] = [  3.,   5.,   7.]
+[ 1.,  3.]                     [  4.,   7.,  10.]
+```
+```
+      g.T             g
+[ 1.,  1.,  1.]   [ 1.,  1.]    [ 3.,  6.],
+[ 1.,  2.,  3.] * [ 1.,  2.] =  [ 6., 14.]
+                  [ 1.,  3.]    
+```
+
+The code to calculate those is
+```
+>>> np.dot(g, g.T)
+array([[ 2.,  3.,  4.],
+       [ 3.,  5.,  7.],
+       [ 4.,  7., 10.]])
+
+>>> np.dot(g.T, g)
+array([[ 3.,  6.],
+       [ 6., 14.]])
+```
+#### The inverse of a matrix
+
+The inverse function, the last thing we need, is contained in a linear algebra sublibrary of NumPy called `linalg`.  The inverse can only be calculated on a square matrix.  Further, inverses can only be calculated for some square matrices.  We would try to calculate the inverse of the second with
+
+```
+>>> np.linalg.inv(np.dot(g.T, g))
+array([[ 2.33333333, -1.        ],
+       [-1.        ,  0.5       ]])
+```
+which worked.  However, when we try to do so with the first, we get a _traceback_ message; that is, an error.  The last line tells us that we have a _singular matrix_, and the inverse doesn't exist.
+
+```
+>>> np.linalg.inv(np.dot(g, g.T))
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "<__array_function__ internals>", line 6, in inv
+  File "/home/user/.local/lib/python3.6/site-packages/numpy/linalg/linalg.py", line 547, in inv
+    ainv = _umath_linalg.inv(a, signature=signature, extobj=extobj)
+  File "/home/user/.local/lib/python3.6/site-packages/numpy/linalg/linalg.py", line 97, in _raise_linalgerror_singular
+    raise LinAlgError("Singular matrix")
+numpy.linalg.LinAlgError: Singular matrix
+```
+
+#### The regression equation
+
+Let's just repeat here what we are going to estimate.  We are estimating the regression coefficients, which are contained in
+
+**b** = (**X**'**X**)<sup>-1</sup>**X'Y**,
+
+and the errors, which are contained in
+
+**&epsilon;** = **Y** - **Xb**.
+
+Let's begin by calculating the expression inside the parentheses.  The multiplication is a dot product, and it is the transpose of **X** times **X**.  So, from what we saw just above that would be `np.dot(X.T, X)`.  Then we need to take the inverse of that.
+
+```
+>>> XprimeX = np.dot(X.T, X)
+>>> XprimeX
+array([[  7.  ,  38.5 ],
+       [ 38.5 , 218.75]])
+```
+That's square, so we are OK to try the inverse with
+```
+>>> np.linalg.inv(XprimeX)
+array([[ 4.46428571, -0.78571429],
+       [-0.78571429,  0.14285714]])
+```
+Let's calculate the last part now with
+```
+>>> XprimeY = np.dot(X.T, Y)
+>>> XprimeY
+array([[ 347.],
+       [1975.]])
+```
+Now we have two relatively clear variable names, `XprimeX` and `XprimeY`.  The first is 2x2, and the second is 2x1, so if we take the dot product, we should end up with two rows (from `XprimeX`) and one column (from `XprimeY`).  We can use those variable names pretty clearly like this.
+
+```
+>>> b = np.dot(np.linalg.inv(XprimeX), XprimeY)
+>>> b
+array([[-2.67857143],
+       [ 9.5       ]])
+```
+So, now we have `b`, which is 2x1.  We also need to calculate the errors, **&epsilon;**, which we can now do pretty simply with
+
+```
+>>> errors = Y - np.dot(X, b)
+>>> errors
+array([[-2.32142857],
+       [ 1.92857143],
+       [ 0.17857143],
+       [ 1.42857143],
+       [-1.32142857],
+       [ 1.92857143],
+       [-1.82142857]])
+```
+and we can make a quick check that things came out OK because it's the right shape; that is, it is the same size as `Y`.
+```
+>>> Y.shape == errors.shape
+True
+```
+
+### Printing the results
+
+A real regression report would contain much more than this, but let's at least report the regression coefficients.  Note that we are using the `{:6f}` format specifier to print floating point numbers to six decimals, and we have to explicitly convert from NumPy array type to the float type with the `float()` function.
+
+```
+>>> print("b0:  {:6f}\nb1:   {:6f}".format(float(b[0]), float(b[1])))
+b0:  -2.678571
+b1:   9.500000
+```
+
+### Finishing our script
+
+Taking what we have above for our `regress.py` script, and adding the steps we just completed, gives us this for our `regress.py` program.
+
+```
+import numpy as np
+
+# Read the data from the data file
+print("Reading the data...")
+data = np.loadtxt('data.csv', delimiter=',', skiprows=1)
+
+# Extract the values for Y from data and reshape to column vector
+Y = data[:, 1]
+Y = Y[:, np.newaxis]
+
+# Extract the values for X from data
+X = data[:, 0]
+
+# Create the constant's column of ones and connect to X
+X = np.array([np.ones(X.shape), X])
+
+# Transpose to columnar format
+X = X.T
+
+print("\nThe X matrix\n")
+print(X)
+print("\nThe Y vector\n")
+print(Y)
+
+# Calculate the regression coefficients
+XprimeX = np.dot(X.T, X)
+XprimeY = np.dot(X.T, Y)
+b = np.dot(np.linalg.inv(XprimeX), XprimeY)
+
+# Calculate the errors (residuals)
+errors = Y - np.dot(X, b)
+
+# Print a table of regression coefficients
+print("\nRegression coefficients\n")
+print("b0:  {:6f}\nb1:   {:6f}".format(float(b[0]), float(b[1])))
+```
+
+Finally, we run that with
+
+```
+$ python3 regress.py
+Reading the data...
+
+The X matrix
+
+[[1.  4. ]
+ [1.  4.5]
+ [1.  5. ]
+ [1.  5.5]
+ [1.  6. ]
+ [1.  6.5]
+ [1.  7. ]]
+
+The Y vector
+
+[[33.]
+ [42.]
+ [45.]
+ [51.]
+ [53.]
+ [61.]
+ [62.]]
+
+Regression coefficients
+
+b0:  -2.678571
+b1:   9.500000
+```
+and congratulate ourselves on job well done.
