@@ -648,3 +648,5 @@ b0:  -2.678571
 b1:   9.500000
 ```
 and congratulate ourselves on job well done.
+
+Clearly there is more that one would do to write a real regression -- reporting _R_<sup>2</sup>, standard errors for the regression coefficients, significance levels, etc.  We will stop here, as the point was to introduce some fundamental and commonly used NumPy concepts and constructs.
